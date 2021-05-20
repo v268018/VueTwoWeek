@@ -10,10 +10,8 @@ const app ={
             }
             axios.post(`${url}/admin/signin`,user)
             .then(res=>{
-                if(res.data.success===true){
-                    console.log(res);
-                    const token = res.data.token;
-                    const expired = res.data.expired;
+                if(res.data.success){
+                    const {token,expired} =res.data;
                     document.cookie = `v268018=${token}; expires=${new Date(expired)}; path=/`;//建立cookie
                     alert('登入成功');
                     window.location='backstage.html';
