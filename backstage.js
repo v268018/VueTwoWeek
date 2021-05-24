@@ -1,67 +1,78 @@
-const app={
-    data:{
-        url:'https://vue3-course-api.hexschool.io',
-        path:'v268018',
-        productData:[],//產品資訊
-        token:{//存放uesr的token
-          headers:{
-            Authorization:'',
-          },
+let myModal ='';
+const app ={
+  //資料
+  data(){
+    return{
+      url:'https://vue3-course-api.hexschool.io',
+      path:'v268018',
+      productData:[],//產品資訊
+      editProductData:{},//編輯產品內容
+      token:{//存放uesr的token
+        headers:{
+          Authorization:'',
         },
-    },
-    //methods
-    removeData(e,vm){//刪除單筆產品訂單
-            const id = e.target.dataset.id;
-            axios.delete(`${vm.data.url}/api/${vm.data.path}/admin/product/${id}`,this.data.token)
-            .then(res=>{
-                console.log(res);
-                vm.getData();
-            }).catch(err=>{
-                console.log(err);
-            })
-    },
-    getData(){//取得產品資料
-        axios.get(`${this.data.url}/api/${this.data.path}/admin/products`,this.data.token)
-        .then(res=>{
-            this.data.productData=res.data.products;
-            console.log(this.data.productData);
-            this.render();
-        }).catch(err=>{
-            console.log(err);
-        })
-    },
-    render(){//畫面輸出
-            const productCount =document.querySelector('#productCount');
-            let str = '';
-            this.data.productData.forEach(item=>{
-            str+=
-            `<tr>
-                <td>${item.title}</td>
-                <td width="120">
-                  ${item.price}
-                </td>
-                <td width="120">
-                  ${item.origin_price}
-                </td>
-                <td width="100">
-                  <span class="">${item.is_enabled}</span>
-                </td>
-                <td width="120">
-                  <button type="button" class="btn btn-sm btn-outline-danger move deleteBtn" data-action="remove" data-id="${item.id}"> 刪除 </button>
-                </td>
-              </tr>`
-            })
-            productList.innerHTML=str;
-            productCount.textContent=this.data.productData.length;
-    },
-    init(){//初始化
-      const myCookie = document.cookie.replace(/(?:(?:^|.*;\s*)v268018\s*\=\s*([^;]*).*$)|^.*$/, "$1");//取得cookie的token
-      this.data.token.headers.Authorization=myCookie;
-      const productList = document.querySelector('#productList');
-      productList.addEventListener('click',(e)=>{
-        this.removeData(e,this)
-      });
-      this.getData();
+      },
     }
-};
-app.init();
+  },
+  //方法
+  methods:{
+    removeProducts(id){//刪除單筆產品訂單
+      console.log(id);
+      axios.delete(`${this.url}/api/${this.path}/admin/product/${id}`,this.token)
+      .then(res=>{
+          console.log(res);
+          this.getProducts();
+      }).catch(err=>{
+          console.log(err);
+      })
+    },
+    setEditProducts(){//設定編輯商品訂單
+      let putEditData={//定義傳送的修改格式
+        data:{
+          ...this.editProductData,
+        }
+      }
+      console.log(putEditData);
+      axios.put(`${this.url}/api/${this.path}/admin/product/${this.editProductData.id}`,putEditData,this.token)
+      .then(res=>{
+        console.log(res);
+        if(res.data.success){
+          alert('訂單資料修改成功');
+          this.getProducts();
+        }
+        else{
+          alert('訂單資料修改失敗');
+        }
+      }).catch(err=>{
+        console.log(err);
+      })
+    },
+    editProducts(item){//編輯商品訂單
+      this.editProductData={...item};
+      myModal.show();
+    },
+    getProducts(){//取得產品資料
+      axios.get(`${this.url}/api/${this.path}/admin/products`,this.token)
+      .then(res=>{
+          console.log(res);
+          this.productData=res.data.products;
+      }).catch(err=>{
+          console.log(err);
+      })
+    },
+  },
+  //初始化(生命週期)
+  created(){
+    const myCookie = document.cookie.replace(/(?:(?:^|.*;\s*)v268018\s*\=\s*([^;]*).*$)|^.*$/, "$1");//取得cookie的token
+    this.token.headers.Authorization=myCookie;//定義token資料內容
+    this.getProducts();
+  },
+  mounted(){
+    myModal = new bootstrap.Modal(document.getElementById('productModal'));
+  }
+}
+Vue.createApp(app).mount('#app')   ;
+
+
+
+
